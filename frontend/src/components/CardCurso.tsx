@@ -1,7 +1,7 @@
 // CursoPeriodo.tsx
 import { useState } from "react";
 import { FaEdit, FaTimes, FaTrashAlt } from "react-icons/fa";
-import s from "../styles/global.css";
+import { toast } from "react-toastify";
 import styles from "./CardCurso.module.css";
 
 type CursoType = {
@@ -24,7 +24,7 @@ export default function Curso() {
 
   function inserirCurso() {
     if (!nomeCurso || !periodo) {
-      alert("Preencha todos os campos");
+      toast.error("Preencha todos os campos");
       return;
     }
 

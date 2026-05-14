@@ -1,7 +1,7 @@
-import CursoPeriodo from "./components/CardCurso";
+import Curso from "./components/CardCurso";
 
 function App() {
-  return <CursoPeriodo />;
+  return <Curso />;
 }
 
 export default App;
