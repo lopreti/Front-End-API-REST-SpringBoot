@@ -14,6 +14,7 @@ export default function Curso() {
   const [nomeCurso, setNomeCurso] = useState("");
   const [periodo, setPeriodo] = useState("");
   const [listaCursos, setListaCursos] = useState<CursoType[]>([]);
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
     getCursos().then(setListaCursos);
@@ -98,7 +99,12 @@ export default function Curso() {
           <h2 className={styles.sectionTitle}>Lista de Cursos</h2>
 
           <div className={styles.formGroup}>
-            <input type="text" placeholder="Buscar Curso pelo Nome" />
+            <input
+              type="text"
+              placeholder="Buscar Curso pelo Nome"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
           </div>
 
           <table className={styles.table}>
@@ -111,32 +117,38 @@ export default function Curso() {
             </thead>
 
             <tbody>
-              {listaCursos.length > 0 ? (
-                listaCursos.map((curso) => (
-                  <tr key={curso.id}>
-                    <td>{curso.nome}</td>
-                    <td>{curso.periodo}</td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button className={styles.iconButton}>
-                          <FaEdit size={18} />
-                        </button>
-                        <button
-                          className={`${styles.iconButton} ${styles.delete}`}
-                          onClick={() => removerCurso(curso.id)}
-                        >
-                          <FaTrashAlt size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
+              {listaCursos.filter((curso) =>
+                curso.nome.toLowerCase().includes(busca.toLowerCase()),
+              ).length === 0 ? (
                 <tr>
                   <td colSpan={3} className={styles.empty}>
                     Nenhum curso cadastrado
                   </td>
                 </tr>
+              ) : (
+                listaCursos
+                  .filter((curso) =>
+                    curso.nome.toLowerCase().includes(busca.toLowerCase()),
+                  )
+                  .map((curso) => (
+                    <tr key={curso.id}>
+                      <td>{curso.nome}</td>
+                      <td>{curso.periodo}</td>
+                      <td>
+                        <div className={styles.actions}>
+                          <button className={styles.iconButton}>
+                            <FaEdit size={18} />
+                          </button>
+                          <button
+                            className={`${styles.iconButton} ${styles.delete}`}
+                            onClick={() => removerCurso(curso.id)}
+                          >
+                            <FaTrashAlt size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>
