@@ -1,8 +1,8 @@
-// CursoPeriodo.tsx
-import { useState } from "react";
-import { FaEdit, FaTimes, FaTrashAlt } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 import styles from "./CardCurso.module.css";
+import { getCursos, createCurso, deleteCurso } from "../api/cursos";
 
 type CursoType = {
   id: number;
@@ -13,37 +13,40 @@ type CursoType = {
 export default function Curso() {
   const [nomeCurso, setNomeCurso] = useState("");
   const [periodo, setPeriodo] = useState("");
+  const [listaCursos, setListaCursos] = useState<CursoType[]>([]);
 
-  const [listaCursos, setListaCursos] = useState<CursoType[]>([
-    {
-      id: 1,
-      nome: "Biologia",
-      periodo: "Noturno",
-    },
-  ]);
+  useEffect(() => {
+    getCursos().then(setListaCursos);
+  }, []);
 
-  function inserirCurso() {
+  async function inserirCurso() {
     if (!nomeCurso || !periodo) {
       toast.error("Preencha todos os campos");
       return;
     }
 
-    const novoCurso: CursoType = {
-      id: Date.now(),
-      nome: nomeCurso,
-      periodo: periodo,
-    };
+    const res = await createCurso({ nome: nomeCurso, periodo });
 
-    setListaCursos([...listaCursos, novoCurso]);
+    if (res.status === 409) {
+      toast.error("Já existe um curso com esse nome");
+      return;
+    }
 
+    if (!res.ok) {
+      toast.error("Erro ao cadastrar curso");
+      return;
+    }
+
+    toast.success("Curso cadastrado!");
     setNomeCurso("");
     setPeriodo("");
+    getCursos().then(setListaCursos);
   }
 
-  function removerCurso(id: number) {
-    const novaLista = listaCursos.filter((curso) => curso.id !== id);
-
-    setListaCursos(novaLista);
+  async function removerCurso(id: number) {
+    await deleteCurso(id);
+    setListaCursos((prev) => prev.filter((c) => c.id !== id));
+    toast.success("Curso removido!");
   }
 
   return (
@@ -61,7 +64,6 @@ export default function Curso() {
 
           <div className={styles.formGroup}>
             <label>Nome do Curso</label>
-
             <input
               type="text"
               placeholder="Digite o nome do curso"
@@ -72,18 +74,15 @@ export default function Curso() {
 
           <div className={styles.formGroup}>
             <label>Período</label>
-
             <select
               value={periodo}
               onChange={(e) => setPeriodo(e.target.value)}
             >
               <option value="">Selecione</option>
-
-              <option value="Manhã">Manhã</option>
-
-              <option value="Tarde">Tarde</option>
-
-              <option value="Noturno">Noturno</option>
+              <option value="MATUTINO">Matutino</option>
+              <option value="VESPERTINO">Vespertino</option>
+              <option value="NOTURNO">Noturno</option>
+              <option value="INTEGRAL">Integral</option>
             </select>
           </div>
 
@@ -116,15 +115,12 @@ export default function Curso() {
                 listaCursos.map((curso) => (
                   <tr key={curso.id}>
                     <td>{curso.nome}</td>
-
                     <td>{curso.periodo}</td>
-
                     <td>
                       <div className={styles.actions}>
                         <button className={styles.iconButton}>
                           <FaEdit size={18} />
                         </button>
-
                         <button
                           className={`${styles.iconButton} ${styles.delete}`}
                           onClick={() => removerCurso(curso.id)}
