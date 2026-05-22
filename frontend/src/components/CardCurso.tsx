@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 import styles from "./CardCurso.module.css";
-import { getCursos, createCurso, deleteCurso } from "../api/cursos";
+import {
+  getCursos,
+  createCurso,
+  deleteCurso,
+  updateCurso,
+} from "../api/cursos";
 
 type CursoType = {
   id: number;
@@ -15,6 +20,7 @@ export default function Curso() {
   const [periodo, setPeriodo] = useState("");
   const [listaCursos, setListaCursos] = useState<CursoType[]>([]);
   const [busca, setBusca] = useState("");
+  const [cursoEditando, setCursoEditando] = useState<CursoType | null>(null);
 
   useEffect(() => {
     getCursos().then(setListaCursos);
@@ -50,6 +56,26 @@ export default function Curso() {
     toast.success("Curso removido!");
   }
 
+  async function editarCurso() {
+    if (!cursoEditando || !nomeCurso || !periodo) return;
+
+    const res = await updateCurso({
+      id: cursoEditando.id,
+      nome: nomeCurso,
+      periodo,
+    });
+
+    if (res.status === 409) {
+      toast.error("Já existe um curso com esse nome");
+      return;
+    }
+
+    toast.success("Curso atualizado!");
+    setCursoEditando(null);
+    setNomeCurso("");
+    setPeriodo("");
+    getCursos().then(setListaCursos);
+  }
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -88,8 +114,11 @@ export default function Curso() {
           </div>
 
           <div className={styles.buttonArea}>
-            <button className={styles.addButton} onClick={inserirCurso}>
-              Inserir Curso
+            <button
+              className={styles.addButton}
+              onClick={cursoEditando ? editarCurso : inserirCurso}
+            >
+              {cursoEditando ? "Salvar Edição" : "Inserir Curso"}
             </button>
           </div>
 
@@ -136,7 +165,14 @@ export default function Curso() {
                       <td>{curso.periodo}</td>
                       <td>
                         <div className={styles.actions}>
-                          <button className={styles.iconButton}>
+                          <button
+                            className={styles.iconButton}
+                            onClick={() => {
+                              setCursoEditando(curso);
+                              setNomeCurso(curso.nome);
+                              setPeriodo(curso.periodo);
+                            }}
+                          >
                             <FaEdit size={18} />
                           </button>
                           <button
